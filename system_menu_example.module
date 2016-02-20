@@ -1,0 +1,222 @@
+<?php
+
+/*
+ * Implements hook_menu().
+ */
+function system_menu_example_menu() {
+  $items = array();
+
+
+  // The following are an example of setting an external url directly as a menu
+  // item. Be careful with this approach as there is no way to alter an
+  // external url once its set. If you change it will produce an extra item that
+  // cannot be deleted. USE THIS APPROACH WITH CAUTION.
+  $items['https://www.google.com'] = array(
+    'title' => 'Search Google',
+    'description' => 'Search stuff on google.',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'social-menu',
+    'weight' => 0,
+    'options' => array(
+      'external' => TRUE,
+      'html' => TRUE,
+      'https' => TRUE,
+      'attributes' => array(
+        'id' => 'google-link',
+        'class' => array('nav__link', 'google'),
+        'target' => '_blank',
+        'rel' => 'no_follow',
+        'title' => t('leave this site and go to google.'),
+      ),
+    ),
+  );
+  $items['https://www.twitter.com'] = array(
+    'title' => 'Go to Twitter',
+    'description' => 'Search stuff on twitter.',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'social-menu',
+    'weight' => 1,
+    'options' => array(
+      'external' => TRUE,
+      'html' => TRUE,
+      'https' => TRUE,
+      'attributes' => array(
+        'id' => 'twitter-link',
+        'class' => array('nav__link', 'twitter'),
+        'target' => '_blank',
+        'rel' => 'no_follow',
+        'title' => t('leave this site and go to twitter.'),
+      ),
+    ),
+  );
+  $items['https://www.drupal.org'] = array(
+    'title' => 'Drupal.org',
+    'description' => 'Search stuff on drupal.',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'menu_name' => 'community-menu',
+    'weight' => 0,
+    'options' => array(
+      'external' => TRUE,
+      'html' => TRUE,
+      'https' => TRUE,
+      'attributes' => array(
+        'id' => 'drupal-link',
+        'class' => array('nav__link', 'drupal'),
+        'target' => '_blank',
+        'rel' => 'no_follow',
+        'title' => t('leave this site and go to drupal.org.'),
+      ),
+    ),
+  );
+
+
+  // This is example of duplicating existing menu/url functionality at a
+  // different url.
+  // This copies the user logout functionality onto an additional url.
+  // Users can logout from '/logout' or '/signout/go-away'
+  $items['signout/go-away'] = array(
+    'title' => 'Sign out',
+    'description' => 'Logout of this site.',
+    'access callback' => 'user_is_logged_in',
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'user_logout',
+    'weight' => 1,
+    'menu_name' => 'community-menu',
+    'file' => 'user.pages.inc',
+    'file path' => drupal_get_path('module', 'user'),
+    'options' => array(
+      'html' => TRUE,
+      'attributes' => array(
+        'id' => 'sign-out',
+        'class' => array('nav__link', 'signout'),
+        'rel' => 'no_follow',
+        'title' => t('logout of site.'),
+      ),
+    ),
+  );
+
+
+  // These paths can be altered as desired and the menus will update themselves.
+  // The callback triggers a drupal_goto redirect to the external page.
+  // This setup is most flexible, but doesn't show the outbound url to users.
+  $items['google'] = array(
+    'title' => 'Go to google',
+    'description' => 'leave this site and go to google.',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'system_menu_example_go_to_external_link',
+    'page arguments' => array('google'),
+    'weight' => 3,
+    'menu_name' => 'community-menu',
+    'options' => array(
+      'html' => TRUE,
+      'https' => TRUE,
+      'attributes' => array(
+        'id' => 'google-link-2',
+        'class' => array('nav__link', 'google'),
+        'target' => '_blank',
+        'rel' => 'no_follow',
+        'title' => t('leave this site and go to google.'),
+      ),
+    ),
+  );
+  $items['facebook'] = array(
+    'title' => 'Go to Facebook',
+    'description' => 'leave this site and go to facebook.',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'system_menu_example_go_to_external_link',
+    'page arguments' => array('facebook'),
+    'weight' => 3,
+    'menu_name' => 'social-menu',
+    'options' => array(
+      'html' => TRUE,
+      'https' => TRUE,
+      'attributes' => array(
+        'id' => 'facebook-link',
+        'class' => array('nav__link', 'facebook'),
+        'target' => '_blank',
+        'rel' => 'no_follow',
+        'title' => t('leave this site and go to facebook.'),
+      ),
+    ),
+  );
+
+  return $items;
+}
+
+
+function system_menu_example_go_to_external_link($id) {
+
+  switch ($id) {
+    case 'google':
+      $site = 'https://www.google.com/';
+      break;
+    case 'facebook':
+      $site = 'https://www.facebook.com/';
+      break;
+    default:
+      $site = NULL;
+      break;
+  }
+
+  if (!empty($site)) {
+    $link = array(
+      'id' => $id,
+      'site' => $site,
+      'options' => array(),
+      'http_response_code' => 301,
+    );
+
+    // Allow other modules to alter the redirect setup.
+    drupal_alter('system_menu_example_go_to_external_link', $link);
+
+    // Make sure we have all the needed components for drupal_goto.
+    if (!empty($link['site'])) {
+      drupal_goto($link['site'], $link['options'], $link['http_response_code']);
+    }
+  }
+}
+
+/**
+ * Implements hook_modules_installed().
+ *
+ * @see system_menu_example_install()
+ */
+function system_menu_example_modules_installed($modules) {
+
+  // In case the menu module is installed after this module, we will need to
+  // have it run thru and create our menus.
+  if (in_array('menu', $modules)) {
+    // Install the social menu.
+    $menu = array(
+      'menu_name' => 'social-menu',
+      'title' => t('Social links'),
+      'description' => t('The <em>Social links</em> menu contains links intended for Social media.'),
+    );
+    menu_save($menu);
+
+    // Install the community menu.
+    $menu = array(
+      'menu_name' => 'community-menu',
+      'title' => t('Community menu'),
+      'description' => t('The <em>Community</em> menu contains links for external Drupal community sites.'),
+    );
+    menu_save($menu);
+  }
+}
+
+/*
+ * Implements hook_form_alter().
+ */
+function system_menu_example_form_menu_edit_menu_alter(&$form, &$form_state) {
+
+  // If our social menu or our community menu, disable ability to change
+  // certain components or delete.
+  if (($form['old_name']['#value'] == 'social-menu') || ($form['old_name']['#value'] == 'community-menu')) {
+    $form['actions']['delete']['#access'] = FALSE;
+  }
+}

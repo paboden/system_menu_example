@@ -1,0 +1,4 @@
+name = System menu example
+description = This is an example module on creating system menus, adding external links through hook_menu, and duplicating existing links.
+core = 7.x
+version = 7.x-1.x

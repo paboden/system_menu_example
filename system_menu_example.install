@@ -1,0 +1,48 @@
+<?php
+
+/*
+ * Implements hook_install().
+ */
+function system_menu_example_install() {
+
+  if (module_exists('menu')) {
+    // Translation function callback.
+    $t = get_t();
+
+    // Install the social menu.
+    $menu = array(
+      'menu_name' => 'social-menu',
+      'title' => $t('Social links'),
+      'description' => $t('The <em>Social links</em> menu contains links intended for Social media.'),
+    );
+    menu_save($menu);
+
+    // Install the community menu.
+    $menu = array(
+      'menu_name' => 'community-menu',
+      'title' => $t('Community'),
+      'description' => $t('The <em>Community</em> menu contains links for external Drupal community sites.'),
+    );
+    menu_save($menu);
+  }
+}
+
+/*
+ * Implements hook_uninstall().
+ */
+function system_menu_example_uninstall() {
+
+  if (module_exists('menu')) {
+    // Delete the social menu.
+    if ($social_menu = menu_load('social-menu')) {
+      menu_delete($social_menu);
+    }
+
+    // Delete the community menu.
+    if ($community_menu = menu_load('community-menu')) {
+      menu_delete($community_menu);
+    }
+  }
+
+  menu_rebuild();
+}
