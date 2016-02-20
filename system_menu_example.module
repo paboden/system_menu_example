@@ -145,12 +145,42 @@ function system_menu_example_menu() {
     ),
   );
 
+  // This item, we use hook_outbound_url_alter to modify the internal page url
+  // to have it output an external URL.
+  $items['go/to/twitter'] = array(
+    'title' => 'Go to Twitter',
+    'description' => 'leave this site and go to twitter.',
+    'access callback' => TRUE,
+    'type' => MENU_NORMAL_ITEM,
+    'page callback' => 'system_menu_example_go_to_external_link',
+    'page arguments' => array('twitter'),
+    'weight' => 4,
+    'menu_name' => 'social-menu',
+    'options' => array(
+      'html' => TRUE,
+      'https' => TRUE,
+      'attributes' => array(
+        'id' => 'twitter-link',
+        'class' => array('nav__link', 'twitter'),
+        'target' => '_blank',
+        'rel' => 'no_follow',
+        'title' => t('leave this site and go to twitter.'),
+      ),
+    ),
+  );
+
   return $items;
 }
 
-
+/*
+ * Callback to send a user to an external site based on an internal page url.
+ *
+ * The alternative to this function and setup is to use hook_outbound_url_alter
+ * like we do below this function. This one leaves the original internal path.
+ *
+ * The preferred method is to use the hook_outbound_url_alter() method.
+ */
 function system_menu_example_go_to_external_link($id) {
-
   switch ($id) {
     case 'google':
       $site = 'https://www.google.com/';
@@ -178,6 +208,23 @@ function system_menu_example_go_to_external_link($id) {
     if (!empty($link['site'])) {
       drupal_goto($link['site'], $link['options'], $link['http_response_code']);
     }
+  }
+}
+
+/*
+ * Implements hook_outbound_url_alter().
+ */
+function system_menu_example_url_outbound_alter(&$path, &$options, $original_path) {
+  // given a path, change the URL to be an external url. This is an alternative
+  // to the above callback that sets a drupal_goto(). This technique replaces
+  // the url of the original menu item with the external url item.
+  //
+  // This is the preferred method of altering an internal URL to external URL.
+
+  // change the go/to/twitter URL to our desirec external URL
+  if ($path == 'go/to/twitter') {
+    $path = 'http://www.twitter.com';
+    $options['external'] = TRUE;
   }
 }
 
