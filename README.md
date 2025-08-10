@@ -1,3 +1,5 @@
+**Drupal 7**
+
 # System menu example module
 
 ## Create your own menu in code
